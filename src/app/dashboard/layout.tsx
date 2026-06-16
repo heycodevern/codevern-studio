@@ -39,6 +39,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     checkAuth();
   }, [router]);
 
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Welcome to CodeVern', text: 'Your engine is ready.', time: 'Just now', read: false },
+    { id: 2, title: 'YouTube Connected', text: 'OAuth token secured successfully.', time: '5m ago', read: false },
+  ]);
+
   const toggleTheme = () => {
     if (isDark) {
       document.documentElement.classList.remove('dark');
@@ -129,9 +135,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
             
             {/* Notification Bell */}
-            <div style={{ position: 'relative', cursor: 'pointer', color: 'var(--text-secondary)' }}>
-              <Bell size={20} />
-              <div style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%' }}></div>
+            <div style={{ position: 'relative' }}>
+              <div style={{ cursor: 'pointer', color: 'var(--text-secondary)', position: 'relative' }} onClick={() => setIsNotifOpen(!isNotifOpen)}>
+                <Bell size={20} />
+                {notifications.some(n => !n.read) && (
+                  <div style={{ position: 'absolute', top: '-2px', right: '-2px', width: '8px', height: '8px', background: '#ef4444', borderRadius: '50%' }}></div>
+                )}
+              </div>
+
+              {/* Notification Dropdown */}
+              {isNotifOpen && (
+                <div style={{ position: 'absolute', top: 'calc(100% + 15px)', right: '-10px', width: '320px', background: 'var(--bg-glass)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '15px', boxShadow: '0 10px 40px rgba(0,0,0,0.3)', backdropFilter: 'blur(20px)', zIndex: 50 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px', borderBottom: '1px solid var(--border-color)', paddingBottom: '10px' }}>
+                    <h4 style={{ margin: 0, fontSize: '1rem' }}>Notifications</h4>
+                    <button style={{ background: 'none', border: 'none', color: 'var(--accent-primary)', fontSize: '0.8rem', cursor: 'pointer' }} onClick={() => setNotifications(notifications.map(n => ({...n, read: true})))}>Mark all as read</button>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '300px', overflowY: 'auto' }}>
+                    {notifications.length === 0 ? (
+                      <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', textAlign: 'center', padding: '20px 0' }}>No new notifications.</p>
+                    ) : (
+                      notifications.slice(0, 5).map(notif => (
+                        <div key={notif.id} style={{ padding: '10px', borderRadius: 'var(--radius-md)', background: notif.read ? 'transparent' : 'rgba(99, 102, 241, 0.05)', borderLeft: notif.read ? '2px solid transparent' : '2px solid var(--accent-primary)' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--text-primary)' }}>{notif.title}</span>
+                            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>{notif.time}</span>
+                          </div>
+                          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{notif.text}</p>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Profile Dropdown */}
