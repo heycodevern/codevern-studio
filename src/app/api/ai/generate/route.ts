@@ -54,7 +54,7 @@ Return EXACTLY a JSON object in this format, and nothing else:
           'Authorization': `Bearer ${selectedKey.api_key}`
         },
         body: JSON.stringify({
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4o-mini',
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: `Topic: ${topic}` }
@@ -71,7 +71,7 @@ Return EXACTLY a JSON object in this format, and nothing else:
       generatedDescription = result.description;
 
     } else if (selectedKey.provider === 'gemini') {
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${selectedKey.api_key}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${selectedKey.api_key}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
