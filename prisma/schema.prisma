@@ -1,0 +1,37 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model profiles {
+  id            String   @id @db.Uuid // Maps to auth.users.id
+  business_name String
+  niche         String
+  timezone      String
+  created_at    DateTime @default(now())
+}
+
+model api_keys {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String    @db.Uuid // Maps to auth.users.id
+  provider       String
+  api_key        String
+  is_active      Boolean   @default(true)
+  last_tested_at DateTime?
+  created_at     DateTime  @default(now())
+}
+
+model social_accounts {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id          String    @db.Uuid // Maps to auth.users.id
+  platform         String
+  account_name     String?
+  access_token     String
+  refresh_token    String?
+  token_expires_at DateTime?
+  is_connected     Boolean   @default(true)
+  created_at       DateTime  @default(now())
+}
