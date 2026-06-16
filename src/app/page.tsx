@@ -1,17 +1,58 @@
 "use client";
 
 import { useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
 export default function Home() {
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
   const [formData, setFormData] = useState({
     businessName: '',
     niche: '',
+    email: '',
+    password: '',
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
   });
 
   const handleNext = () => setStep(prev => prev + 1);
   const handleBack = () => setStep(prev => prev - 1);
+
+  const completeSetup = async () => {
+    setIsLoading(true);
+    setErrorMsg('');
+    
+    // 1. Sign up the user in Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+    });
+
+    if (authError) {
+      setErrorMsg(authError.message);
+      setIsLoading(false);
+      return;
+    }
+
+    if (authData.user) {
+      // 2. Insert the profile details
+      const { error: profileError } = await supabase.from('profiles').insert({
+        id: authData.user.id,
+        business_name: formData.businessName,
+        niche: formData.niche,
+        timezone: formData.timezone
+      });
+
+      if (profileError) {
+        setErrorMsg(profileError.message);
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    setIsLoading(false);
+    setStep(4); // Move to dashboard
+  };
 
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '20px' }}>
@@ -38,6 +79,26 @@ export default function Home() {
                 placeholder="e.g. CodeVern Tech"
                 value={formData.businessName}
                 onChange={e => setFormData({...formData, businessName: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="input-label">Email Address (For Login)</label>
+              <input 
+                type="email" 
+                className="input-field" 
+                placeholder="you@example.com"
+                value={formData.email}
+                onChange={e => setFormData({...formData, email: e.target.value})}
+              />
+            </div>
+            <div>
+              <label className="input-label">Password</label>
+              <input 
+                type="password" 
+                className="input-field" 
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={e => setFormData({...formData, password: e.target.value})}
               />
             </div>
             <div>
@@ -100,8 +161,10 @@ export default function Home() {
               ))}
             </div>
             
-            <button className="btn-primary" style={{ marginTop: '20px' }} onClick={handleNext}>
-              Complete Setup & Enter Dashboard
+            {errorMsg && <p style={{ color: '#ef4444', textAlign: 'center', fontSize: '0.9rem' }}>{errorMsg}</p>}
+            
+            <button className="btn-primary" style={{ marginTop: '20px' }} onClick={completeSetup} disabled={isLoading}>
+              {isLoading ? 'Setting up your engine...' : 'Complete Setup & Enter Dashboard'}
             </button>
             <button style={{ color: 'var(--text-secondary)', marginTop: '10px' }} onClick={handleBack}>
               ← Back
@@ -131,8 +194,12 @@ export default function Home() {
               </div>
             </div>
             
-            <button className="btn-primary" style={{ marginTop: '20px' }}>
-              Start AI Content Generator
+            <button 
+              className="btn-primary" 
+              style={{ marginTop: '20px' }}
+              onClick={() => window.location.href = '/dashboard/keys'}
+            >
+              Configure AI API Keys →
             </button>
           </div>
         )}
