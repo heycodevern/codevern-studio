@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 
 export default function Home() {
   const [step, setStep] = useState(1);
+  const [isLoginMode, setIsLoginMode] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [formData, setFormData] = useState({
@@ -24,6 +25,19 @@ export default function Home() {
 
   const [isDark, setIsDark] = useState(false);
 
+  const router = useRouter();
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        router.push('/dashboard/keys');
+      }
+    };
+    checkUser();
+  }, [router]);
+
   const toggleTheme = () => {
     if (isDark) {
       document.documentElement.classList.remove('dark');
@@ -41,6 +55,26 @@ export default function Home() {
     setIsLoading(true);
     setErrorMsg('');
     
+    if (isLoginMode) {
+      // Handle Login
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (authError) {
+        setErrorMsg(authError.message);
+        showToast(authError.message, 'error');
+        setIsLoading(false);
+        return;
+      }
+
+      showToast('Login successful! Redirecting...', 'success');
+      router.push('/dashboard/keys');
+      return;
+    }
+
+    // Handle Registration
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
@@ -129,15 +163,26 @@ export default function Home() {
           
           <div style={{ marginBottom: '30px' }}>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '5px' }}>
-              {step === 1 && "Create your Engine"}
-              {step === 2 && "Algorithm Config"}
-              {step === 3 && "Finalize Setup"}
-              {step === 4 && "Dashboard Ready"}
+              {isLoginMode 
+                ? "Welcome Back" 
+                : step === 1 
+                  ? "Create your Engine" 
+                  : step === 2 
+                    ? "Algorithm Config" 
+                    : step === 3 
+                      ? "Finalize Setup" 
+                      : "Dashboard Ready"}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-              {step === 1 && "Basic details to tune the AI to your niche."}
-              {step === 2 && "Reviewing the prompt strategies."}
-              {step === 3 && "You are almost there."}
+              {isLoginMode 
+                ? "Sign in to access your dashboard." 
+                : step === 1 
+                  ? "Basic details to tune the AI to your niche." 
+                  : step === 2 
+                    ? "Reviewing the prompt strategies." 
+                    : step === 3 
+                      ? "You are almost there." 
+                      : ""}
             </p>
           </div>
 
@@ -150,13 +195,17 @@ export default function Home() {
           )}
 
           <>
-            {/* Step 1 */}
-            {step === 1 && (
+            {/* Login Mode or Step 1 */}
+            {(step === 1 || isLoginMode) && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                  <div>
-                    <label className="input-label">Project / Business Name</label>
-                    <input type="text" className="input-field" placeholder="e.g. CodeVern Tech" value={formData.businessName} onChange={e => setFormData({...formData, businessName: e.target.value})} />
-                  </div>
+                  
+                  {!isLoginMode && (
+                    <div>
+                      <label className="input-label">Project / Business Name</label>
+                      <input type="text" className="input-field" placeholder="e.g. CodeVern Tech" value={formData.businessName} onChange={e => setFormData({...formData, businessName: e.target.value})} />
+                    </div>
+                  )}
+                  
                   <div>
                     <label className="input-label">Email Address (For Login)</label>
                     <input type="email" className="input-field" placeholder="you@example.com" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
@@ -165,22 +214,46 @@ export default function Home() {
                     <label className="input-label">Password</label>
                     <input type="password" className="input-field" placeholder="••••••••" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
                   </div>
-                  <div>
-                    <label className="input-label">Your Content Niche / Industry</label>
-                    <input type="text" className="input-field" placeholder="e.g. Tech Education" value={formData.niche} onChange={e => setFormData({...formData, niche: e.target.value})} />
-                  </div>
-                  <div>
-                    <label className="input-label">Detected Timezone</label>
-                    <input type="text" className="input-field" value={formData.timezone} readOnly style={{ opacity: 0.7, cursor: 'not-allowed' }} />
-                  </div>
-                  <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleNext}>
-                    Next Step →
-                  </button>
+                  
+                  {!isLoginMode && (
+                    <>
+                      <div>
+                        <label className="input-label">Your Content Niche / Industry</label>
+                        <input type="text" className="input-field" placeholder="e.g. Tech Education" value={formData.niche} onChange={e => setFormData({...formData, niche: e.target.value})} />
+                      </div>
+                      <div>
+                        <label className="input-label">Detected Timezone</label>
+                        <input type="text" className="input-field" value={formData.timezone} readOnly style={{ opacity: 0.7, cursor: 'not-allowed' }} />
+                      </div>
+                    </>
+                  )}
+
+                  {isLoginMode ? (
+                    <button className="btn-primary" style={{ marginTop: '10px' }} onClick={completeSetup} disabled={isLoading}>
+                      {isLoading ? <span className="spinner"></span> : null}
+                      {isLoading ? 'Signing In...' : 'Sign In to Dashboard'}
+                    </button>
+                  ) : (
+                    <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleNext}>
+                      Next Step →
+                    </button>
+                  )}
+
+                  <p style={{ textAlign: 'center', fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '10px' }}>
+                    {isLoginMode ? "Don't have an engine yet? " : "Already have an engine? "}
+                    <button 
+                      onClick={() => setIsLoginMode(!isLoginMode)}
+                      style={{ color: 'var(--accent-primary)', fontWeight: 600, textDecoration: 'underline' }}
+                    >
+                      {isLoginMode ? "Create one" : "Login"}
+                    </button>
+                  </p>
+
                 </div>
               )}
 
               {/* Step 2 */}
-              {step === 2 && (
+              {step === 2 && !isLoginMode && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div style={{ background: 'var(--accent-glow)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
                     <h3 style={{ color: 'var(--accent-primary)', marginBottom: '10px' }}>Algorithm Optimizer Active</h3>
@@ -196,7 +269,7 @@ export default function Home() {
               )}
 
               {/* Step 3 */}
-              {step === 3 && (
+              {step === 3 && !isLoginMode && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
                     Click below to create your account and securely setup your database.
@@ -217,7 +290,7 @@ export default function Home() {
               )}
 
               {/* Step 4: Dashboard Preview */}
-              {step === 4 && (
+              {step === 4 && !isLoginMode && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'center' }}>
                   <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🚀</div>
                   <h3 className="text-gradient">Engine is Online</h3>
@@ -232,7 +305,7 @@ export default function Home() {
               )}
             </>
           {/* Progress Bar */}
-          {step < 4 && !isLoading && (
+          {step < 4 && !isLoginMode && !isLoading && (
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '40px' }}>
               {[1, 2, 3].map(i => (
                 <div key={i} style={{ 
