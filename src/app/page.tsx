@@ -32,7 +32,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section style={{ padding: '100px 20px', textAlign: 'center', position: 'relative' }}>
         {/* Abstract Background Glows */}
-        <div style={{ position: 'absolute', top: '20%', left: '20%', width: '300px', height: '300px', background: 'var(--accent-primary)', filter: 'blur(120px)', opacity: 0.15, borderRadius: '50%', zIndex: 0 pointerEvents: 'none' }}></div>
+        <div style={{ position: 'absolute', top: '20%', left: '20%', width: '300px', height: '300px', background: 'var(--accent-primary)', filter: 'blur(120px)', opacity: 0.15, borderRadius: '50%', zIndex: 0, pointerEvents: 'none' }}></div>
         <div style={{ position: 'absolute', bottom: '10%', right: '20%', width: '250px', height: '250px', background: '#e1306c', filter: 'blur(100px)', opacity: 0.1, borderRadius: '50%', zIndex: 0, pointerEvents: 'none' }}></div>
 
         <div style={{ position: 'relative', zIndex: 10, maxWidth: '800px', margin: '0 auto' }}>
