@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { PrismaClient } from '@prisma/client';
+
 
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -8,8 +8,6 @@ const supabaseAdmin = createClient(
 );
 
 export async function POST(req: Request) {
-  const prisma = new PrismaClient();
-
   try {
     const { email, password, role, businessName, ownerId } = await req.json();
 
@@ -26,16 +24,16 @@ export async function POST(req: Request) {
 
     // 2. Insert into profiles table
     if (authData.user) {
-      await prisma.profiles.create({
-        data: {
+      await supabaseAdmin
+        .from('profiles')
+        .insert({
           id: authData.user.id,
           business_name: businessName,
           niche: 'Staff',
           timezone: 'UTC',
           role: role,
           owner_id: ownerId
-        }
-      });
+        });
     }
 
     return NextResponse.json({ success: true, user: authData.user });

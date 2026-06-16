@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getGoogleOAuthClient } from '../../connect/route';
-import { PrismaClient } from '@prisma/client';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function GET(req: Request) {
-  const prisma = new PrismaClient();
-
   const { searchParams } = new URL(req.url);
   const code = searchParams.get('code');
   const userId = searchParams.get('state'); // The userId we passed
@@ -39,34 +42,37 @@ export async function GET(req: Request) {
       console.error('Could not fetch channel name:', e);
     }
 
-    // Upsert the social account in our database
-    const existing = await prisma.social_accounts.findFirst({
-      where: { user_id: userId, platform: 'youtube' }
-    });
+    // Upsert the social account using Supabase
+    const { data: existing } = await supabaseAdmin
+      .from('social_accounts')
+      .select('id, refresh_token')
+      .eq('user_id', userId)
+      .eq('platform', 'youtube')
+      .single();
 
     if (existing) {
-      await prisma.social_accounts.update({
-        where: { id: existing.id },
-        data: {
+      await supabaseAdmin
+        .from('social_accounts')
+        .update({
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token || existing.refresh_token,
-          token_expires_at: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+          token_expires_at: tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : null,
           account_name: channelName,
           is_connected: true
-        }
-      });
+        })
+        .eq('id', existing.id);
     } else {
-      await prisma.social_accounts.create({
-        data: {
+      await supabaseAdmin
+        .from('social_accounts')
+        .insert({
           user_id: userId,
           platform: 'youtube',
           access_token: tokens.access_token,
           refresh_token: tokens.refresh_token,
-          token_expires_at: tokens.expiry_date ? new Date(tokens.expiry_date) : null,
+          token_expires_at: tokens.expiry_date ? new Date(tokens.expiry_date).toISOString() : null,
           account_name: channelName,
           is_connected: true
-        }
-      });
+        });
     }
 
     // Successfully connected, redirect back to dashboard
