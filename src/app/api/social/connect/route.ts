@@ -1,28 +1,46 @@
 import { NextResponse } from 'next/server';
+import { google } from 'googleapis';
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+// Helper to get Google OAuth2 Client
+export const getGoogleOAuthClient = () => {
+  return new google.auth.OAuth2(
+    process.env.YOUTUBE_CLIENT_ID,
+    process.env.YOUTUBE_CLIENT_SECRET,
+    process.env.NODE_ENV === 'production' 
+      ? 'https://codevern-studio.vercel.app/api/social/callback/youtube' 
+      : 'http://localhost:3000/api/social/callback/youtube'
+  );
+};
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
   const provider = searchParams.get('provider');
+  const userId = searchParams.get('userId'); // We'll pass this from the frontend
 
   if (!provider) {
-    return NextResponse.json({ error: 'Provider is required' }, { status: 400 });
+    return NextResponse.json({ error: 'Missing provider' }, { status: 400 });
   }
 
-  // Define OAuth Endpoints (Placeholders for now)
-  const OAUTH_URLS: Record<string, string> = {
-    facebook: `https://www.facebook.com/v17.0/dialog/oauth?client_id=${process.env.FACEBOOK_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}/api/social/callback&scope=pages_manage_posts,pages_read_engagement`,
-    instagram: `https://api.instagram.com/oauth/authorize?client_id=${process.env.INSTAGRAM_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}/api/social/callback&scope=user_profile,user_media&response_type=code`,
-    youtube: `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.YOUTUBE_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}/api/social/callback&response_type=code&scope=https://www.googleapis.com/auth/youtube.upload`,
-    linkedin: `https://www.linkedin.com/oauth/v2/authorization?response_type=code&client_id=${process.env.LINKEDIN_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_APP_URL}/api/social/callback&scope=w_member_social`
-  };
+  if (provider === 'youtube') {
+    if (!process.env.YOUTUBE_CLIENT_ID) {
+      return NextResponse.json({ error: 'YOUTUBE_CLIENT_ID is not set in .env' }, { status: 500 });
+    }
 
-  const redirectUrl = OAUTH_URLS[provider];
+    const oauth2Client = getGoogleOAuthClient();
 
-  if (!redirectUrl) {
-    return NextResponse.json({ error: 'Invalid provider' }, { status: 400 });
+    // Generate a secure URL to Google's consent screen
+    const authorizationUrl = oauth2Client.generateAuthUrl({
+      access_type: 'offline', // Required to get a refresh token
+      prompt: 'consent', // Force consent screen to ensure refresh token is provided
+      scope: [
+        'https://www.googleapis.com/auth/youtube.upload',
+        'https://www.googleapis.com/auth/youtube.readonly'
+      ],
+      state: userId || 'unknown', // Pass the user ID so we know who they are in the callback
+    });
+
+    return NextResponse.redirect(authorizationUrl);
   }
 
-  // Redirect user to the Provider's OAuth login page
-  // Note: This will fail until the actual Client IDs are added to .env.local
-  return NextResponse.redirect(redirectUrl);
+  return NextResponse.json({ error: 'Provider not supported yet' }, { status: 400 });
 }

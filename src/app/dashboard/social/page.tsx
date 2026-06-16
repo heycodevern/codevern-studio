@@ -37,9 +37,9 @@ export default function SocialConnectionsPage() {
   }, []);
 
   const handleConnect = async (platform: string) => {
-    // Scaffolded for OAuth
-    // In production, this redirects to the backend API route which redirects to the OAuth provider
-    window.location.href = `/api/social/connect?provider=${platform}`;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    window.location.href = `/api/social/connect?provider=${platform}&userId=${user.id}`;
   };
 
   const platforms = [
