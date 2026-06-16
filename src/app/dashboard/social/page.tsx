@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { FaYoutube, FaFacebook, FaInstagram, FaLinkedin } from 'react-icons/fa';
 
 interface SocialAccount {
   id: string;
@@ -42,15 +43,15 @@ export default function SocialConnectionsPage() {
   };
 
   const platforms = [
-    { id: 'youtube', name: 'YouTube', color: '#ff0000' },
-    { id: 'facebook', name: 'Facebook', color: '#1877f2' },
-    { id: 'instagram', name: 'Instagram', color: '#e1306c' },
-    { id: 'linkedin', name: 'LinkedIn', color: '#0a66c2' },
+    { id: 'youtube', name: 'YouTube', color: '#ff0000', icon: <FaYoutube size={28} /> },
+    { id: 'facebook', name: 'Facebook', color: '#1877f2', icon: <FaFacebook size={28} /> },
+    { id: 'instagram', name: 'Instagram', color: '#e1306c', icon: <FaInstagram size={28} /> },
+    { id: 'linkedin', name: 'LinkedIn', color: '#0a66c2', icon: <FaLinkedin size={28} /> },
   ];
 
   return (
-    <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
-      <h1 className="text-gradient" style={{ fontSize: '2.5rem', marginBottom: '20px' }}>Social Connections</h1>
+    <div style={{ maxWidth: '800px' }}>
+      <h1 className="text-gradient" style={{ fontSize: '2.5rem', marginBottom: '20px' }}>Social Accounts</h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '40px' }}>
         Connect your social media accounts. CodeVern Studio needs these connections to automatically publish your AI-generated content.
       </p>
@@ -61,8 +62,8 @@ export default function SocialConnectionsPage() {
           
           return (
             <div key={platform.id} className="glass-panel" style={{ padding: '30px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-              <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: platform.color, marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
-                {platform.name[0]}
+              <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: platform.color, marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+                {platform.icon}
               </div>
               <h3 style={{ marginBottom: '10px' }}>{platform.name}</h3>
               

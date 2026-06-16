@@ -56,7 +56,7 @@ export default function ApiKeysPage() {
   };
 
   return (
-    <div style={{ padding: '40px', maxWidth: '800px', margin: '0 auto' }}>
+    <div style={{ maxWidth: '800px' }}>
       <h1 className="text-gradient" style={{ fontSize: '2.5rem', marginBottom: '20px' }}>AI API Keys</h1>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '40px' }}>
         Add your API keys here. Our Smart Algorithm Engine will automatically cycle through them, testing each one. If one fails or hits a rate limit, we instantly fall back to the next working key.
