@@ -42,6 +42,20 @@ export default function SocialConnectionsPage() {
     window.location.href = `/api/social/connect?provider=${platform}&userId=${user.id}`;
   };
 
+  const handleDisconnect = async (platform: string) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    
+    const { error } = await supabase
+      .from('social_accounts')
+      .delete()
+      .match({ user_id: user.id, platform });
+      
+    if (!error) {
+      fetchAccounts();
+    }
+  };
+
   const platforms = [
     { id: 'youtube', name: 'YouTube', color: '#ff0000', icon: <FaYoutube size={28} /> },
     { id: 'facebook', name: 'Facebook', color: '#1877f2', icon: <FaFacebook size={28} /> },
@@ -77,7 +91,10 @@ export default function SocialConnectionsPage() {
                     >
                       Manage
                     </button>
-                    <button style={{ color: '#ef4444', padding: '5px 10px', fontSize: '0.9rem', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-sm)', background: 'transparent' }}>
+                    <button 
+                      style={{ color: '#ef4444', padding: '5px 10px', fontSize: '0.9rem', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-sm)', background: 'transparent' }}
+                      onClick={() => handleDisconnect(platform.id)}
+                    >
                       Disconnect
                     </button>
                   </div>
