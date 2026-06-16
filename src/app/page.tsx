@@ -15,6 +15,18 @@ export default function Home() {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
   });
 
+  const [isDark, setIsDark] = useState(false);
+
+  const toggleTheme = () => {
+    if (isDark) {
+      document.documentElement.classList.remove('dark');
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add('dark');
+      setIsDark(true);
+    }
+  };
+
   const handleNext = () => setStep(prev => prev + 1);
   const handleBack = () => setStep(prev => prev - 1);
 
@@ -22,7 +34,6 @@ export default function Home() {
     setIsLoading(true);
     setErrorMsg('');
     
-    // 1. Sign up the user in Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email: formData.email,
       password: formData.password,
@@ -35,7 +46,6 @@ export default function Home() {
     }
 
     if (authData.user) {
-      // 2. Insert the profile details
       const { error: profileError } = await supabase.from('profiles').insert({
         id: authData.user.id,
         business_name: formData.businessName,
@@ -50,175 +60,183 @@ export default function Home() {
       }
     }
 
-    setIsLoading(false);
-    setStep(4); // Move to dashboard
+    // Simulate small delay for smooth animation
+    setTimeout(() => {
+      setIsLoading(false);
+      setStep(4);
+    }, 1000);
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', padding: '20px' }}>
-      <div className="glass-panel" style={{ width: '100%', maxWidth: '600px', padding: '40px', position: 'relative' }}>
-        
-        {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h1 className="text-gradient" style={{ fontSize: '2.5rem', marginBottom: '10px' }}>CodeVern Studio</h1>
-          <p style={{ color: 'var(--text-secondary)' }}>
-            {step === 1 && "Let's set up your smart social media engine."}
-            {step === 2 && "Configure your AI content generation."}
-            {step === 3 && "Connect your social platforms."}
+    <div className="split-layout">
+      
+      {/* Left Side: Branding & Value Prop */}
+      <div className="split-left">
+        <div>
+          <div style={{ display: 'inline-block', padding: '8px 16px', background: 'var(--accent-glow)', borderRadius: 'var(--radius-lg)', color: 'var(--accent-primary)', fontSize: '0.8rem', fontWeight: 600, marginBottom: '20px' }}>
+            CodeVern Studio v2.0
+          </div>
+          <h1 style={{ fontSize: '3.5rem', lineHeight: 1.1, marginBottom: '20px' }}>
+            The Smart <br/> <span className="text-gradient">Social Engine</span>
+          </h1>
+          <p style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', maxWidth: '400px', marginBottom: '40px' }}>
+            Automate your growth across YouTube, Facebook, and Instagram with advanced AI optimization.
           </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-glass)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}>⚡</div>
+              <div>
+                <h4 style={{ color: 'var(--text-primary)' }}>100% Automated</h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Set it and forget it scheduling.</p>
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-glass)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}>🤖</div>
+              <div>
+                <h4 style={{ color: 'var(--text-primary)' }}>Multi-AI Fallback</h4>
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>OpenAI, Gemini, DeepSeek & more.</p>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Step 1: Basic Details */}
-        {step === 1 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div>
-              <label className="input-label">Project / Business Name</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                placeholder="e.g. CodeVern Tech"
-                value={formData.businessName}
-                onChange={e => setFormData({...formData, businessName: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="input-label">Email Address (For Login)</label>
-              <input 
-                type="email" 
-                className="input-field" 
-                placeholder="you@example.com"
-                value={formData.email}
-                onChange={e => setFormData({...formData, email: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="input-label">Password</label>
-              <input 
-                type="password" 
-                className="input-field" 
-                placeholder="••••••••"
-                value={formData.password}
-                onChange={e => setFormData({...formData, password: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="input-label">Your Content Niche / Industry</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                placeholder="e.g. Tech Education, Earning Websites..."
-                value={formData.niche}
-                onChange={e => setFormData({...formData, niche: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="input-label">Detected Timezone (For Auto-Posting)</label>
-              <input 
-                type="text" 
-                className="input-field" 
-                value={formData.timezone}
-                readOnly
-                style={{ opacity: 0.7, cursor: 'not-allowed' }}
-              />
-              <p style={{ fontSize: '0.8rem', color: 'var(--accent-primary)', marginTop: '8px' }}>
-                All scheduled posts will automatically sync to {formData.timezone}.
+      {/* Right Side: Glassmorphism Form */}
+      <div className="split-right" style={{ position: 'relative' }}>
+        
+        {/* Theme Toggle */}
+        <button 
+          onClick={toggleTheme}
+          style={{ position: 'absolute', top: '20px', right: '40px', fontSize: '1.5rem', background: 'var(--bg-glass)', border: '1px solid var(--border-color)', borderRadius: '50%', width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10 }}
+          title="Toggle Dark/Light Mode"
+        >
+          {isDark ? '☀️' : '🌙'}
+        </button>
+
+        <div style={{ width: '100%', maxWidth: '500px', padding: '40px', position: 'relative' }}>
+          
+          <div style={{ marginBottom: '30px' }}>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '5px' }}>
+              {step === 1 && "Create your Engine"}
+              {step === 2 && "Algorithm Config"}
+              {step === 3 && "Finalize Setup"}
+              {step === 4 && "Dashboard Ready"}
+            </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+              {step === 1 && "Basic details to tune the AI to your niche."}
+              {step === 2 && "Reviewing the prompt strategies."}
+              {step === 3 && "You are almost there."}
+            </p>
+          </div>
+
+          {isLoading ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+              <div className="skeleton skeleton-text" style={{ width: '60%' }}></div>
+              <div className="skeleton skeleton-block"></div>
+              <div className="skeleton skeleton-text" style={{ width: '80%' }}></div>
+              <p style={{ textAlign: 'center', color: 'var(--accent-primary)', marginTop: '20px', fontWeight: 500, animation: 'pulse 2s infinite' }}>
+                Building your smart engine...
               </p>
             </div>
-            <button className="btn-primary" style={{ marginTop: '20px' }} onClick={handleNext}>
-              Continue to AI Setup →
-            </button>
-          </div>
-        )}
-
-        {/* Step 2: AI Details */}
-        {step === 2 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--accent-glow)' }}>
-              <h3 style={{ color: 'var(--text-primary)', marginBottom: '10px' }}>Smart Algorithm Engine</h3>
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                CodeVern Studio uses advanced Prompt Engineering tailored for YouTube, Facebook, and Instagram to maximize reach and engagement. We will automatically use the best available AI API.
-              </p>
-            </div>
-            
-            <button className="btn-primary" style={{ marginTop: '20px' }} onClick={handleNext}>
-              Continue to Connections →
-            </button>
-            <button style={{ color: 'var(--text-secondary)', marginTop: '10px' }} onClick={handleBack}>
-              ← Back
-            </button>
-          </div>
-        )}
-
-        {/* Step 3: Social Media Setup Placeholder */}
-        {step === 3 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              {['YouTube', 'Facebook', 'Instagram', 'LinkedIn'].map(platform => (
-                <div key={platform} className="glass-panel" style={{ padding: '20px', textAlign: 'center', cursor: 'pointer', transition: 'all 0.3s' }}>
-                  <h4 style={{ color: 'var(--text-primary)' }}>{platform}</h4>
-                  <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '5px' }}>Not Connected</p>
+          ) : (
+            <>
+              {/* Step 1 */}
+              {step === 1 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div>
+                    <label className="input-label">Project / Business Name</label>
+                    <input type="text" className="input-field" placeholder="e.g. CodeVern Tech" value={formData.businessName} onChange={e => setFormData({...formData, businessName: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="input-label">Email Address (For Login)</label>
+                    <input type="email" className="input-field" placeholder="you@example.com" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="input-label">Password</label>
+                    <input type="password" className="input-field" placeholder="••••••••" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="input-label">Your Content Niche / Industry</label>
+                    <input type="text" className="input-field" placeholder="e.g. Tech Education" value={formData.niche} onChange={e => setFormData({...formData, niche: e.target.value})} />
+                  </div>
+                  <div>
+                    <label className="input-label">Detected Timezone</label>
+                    <input type="text" className="input-field" value={formData.timezone} readOnly style={{ opacity: 0.7, cursor: 'not-allowed' }} />
+                  </div>
+                  <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleNext}>
+                    Next Step →
+                  </button>
                 </div>
+              )}
+
+              {/* Step 2 */}
+              {step === 2 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div style={{ background: 'var(--accent-glow)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid rgba(99, 102, 241, 0.3)' }}>
+                    <h3 style={{ color: 'var(--accent-primary)', marginBottom: '10px' }}>Algorithm Optimizer Active</h3>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                      We will automatically inject trending hashtags, SEO keywords, and optimal formatting for {formData.niche || "your niche"} directly into the AI prompts.
+                    </p>
+                  </div>
+                  <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleNext}>
+                    Continue →
+                  </button>
+                  <button style={{ color: 'var(--text-secondary)' }} onClick={handleBack}>← Back</button>
+                </div>
+              )}
+
+              {/* Step 3 */}
+              {step === 3 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                    Click below to create your account and securely setup your database.
+                  </p>
+                  
+                  {errorMsg && (
+                    <div className="alert alert-error">
+                      ⚠️ {errorMsg}
+                    </div>
+                  )}
+                  
+                  <button className="btn-primary" style={{ marginTop: '10px' }} onClick={completeSetup}>
+                    Complete Setup
+                  </button>
+                  <button style={{ color: 'var(--text-secondary)' }} onClick={handleBack}>← Back</button>
+                </div>
+              )}
+
+              {/* Step 4: Dashboard Preview */}
+              {step === 4 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'center' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🚀</div>
+                  <h3 className="text-gradient">Engine is Online</h3>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
+                    Welcome to your automated dashboard.
+                  </p>
+                  
+                  <button className="btn-primary" onClick={() => window.location.href = '/dashboard/keys'}>
+                    Configure AI API Keys →
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* Progress Bar */}
+          {step < 4 && !isLoading && (
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '40px' }}>
+              {[1, 2, 3].map(i => (
+                <div key={i} style={{ 
+                  width: '30px', height: '4px', borderRadius: '2px',
+                  background: i <= step ? 'var(--accent-primary)' : 'var(--border-color)',
+                  transition: 'all 0.3s ease'
+                }} />
               ))}
             </div>
-            
-            {errorMsg && <p style={{ color: '#ef4444', textAlign: 'center', fontSize: '0.9rem' }}>{errorMsg}</p>}
-            
-            <button className="btn-primary" style={{ marginTop: '20px' }} onClick={completeSetup} disabled={isLoading}>
-              {isLoading ? 'Setting up your engine...' : 'Complete Setup & Enter Dashboard'}
-            </button>
-            <button style={{ color: 'var(--text-secondary)', marginTop: '10px' }} onClick={handleBack}>
-              ← Back
-            </button>
-          </div>
-        )}
+          )}
 
-        {/* Step 4: Dashboard Preview */}
-        {step === 4 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ textAlign: 'center', padding: '30px 0' }}>
-              <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🚀</div>
-              <h2 className="text-gradient">Welcome to CodeVern Studio</h2>
-              <p style={{ color: 'var(--text-secondary)', marginTop: '10px' }}>
-                Your {formData.niche || 'Niche'} Engine is Ready.
-              </p>
-            </div>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-              <div className="glass-panel" style={{ padding: '20px' }}>
-                <h4 style={{ color: 'var(--text-primary)' }}>AI API Status</h4>
-                <p style={{ color: 'var(--accent-secondary)', fontSize: '0.9rem', marginTop: '5px' }}>● 0 Keys Configured</p>
-              </div>
-              <div className="glass-panel" style={{ padding: '20px' }}>
-                <h4 style={{ color: 'var(--text-primary)' }}>Scheduled Posts</h4>
-                <p style={{ color: 'var(--accent-primary)', fontSize: '0.9rem', marginTop: '5px' }}>0 Upcoming</p>
-              </div>
-            </div>
-            
-            <button 
-              className="btn-primary" 
-              style={{ marginTop: '20px' }}
-              onClick={() => window.location.href = '/dashboard/keys'}
-            >
-              Configure AI API Keys →
-            </button>
-          </div>
-        )}
-        
-        {/* Progress Bar (Only show during setup) */}
-        {step < 4 && (
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '40px' }}>
-            {[1, 2, 3].map(i => (
-              <div key={i} style={{ 
-                width: '40px', 
-                height: '4px', 
-                borderRadius: '2px',
-                background: i <= step ? 'var(--accent-primary)' : 'rgba(255, 255, 255, 0.1)',
-                transition: 'all 0.3s ease'
-              }} />
-            ))}
-          </div>
-        )}
-
+        </div>
       </div>
     </div>
   );
