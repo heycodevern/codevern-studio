@@ -6,16 +6,28 @@ import { Activity, Users, CalendarClock, Zap } from 'lucide-react';
 
 export default function DashboardOverviewPage() {
   const [profile, setProfile] = useState<any>(null);
+  const [socialCount, setSocialCount] = useState(0);
+  const [postsCount, setPostsCount] = useState(0);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchDashboardData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      if (data) setProfile(data);
+      // Fetch Profile
+      const { data: profileData } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+      if (profileData) setProfile(profileData);
+
+      // Fetch Connected Socials
+      const { count: socialDataCount } = await supabase.from('social_accounts').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_connected', true);
+      setSocialCount(socialDataCount || 0);
+
+      // Fetch Scheduled Posts
+      const { count: scheduledCount } = await supabase.from('posts').select('*', { count: 'exact', head: true }).eq('user_id', user.id).eq('status', 'scheduled');
+      setPostsCount(scheduledCount || 0);
     };
-    fetchProfile();
+    
+    fetchDashboardData();
   }, []);
 
   return (
@@ -42,7 +54,7 @@ export default function DashboardOverviewPage() {
             <Users size={18} />
             <h4 style={{ margin: 0, fontWeight: 500 }}>Social Accounts</h4>
           </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 600 }}>0</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 600 }}>{socialCount}</div>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '5px' }}>Connected platforms</p>
         </div>
 
@@ -51,7 +63,7 @@ export default function DashboardOverviewPage() {
             <CalendarClock size={18} />
             <h4 style={{ margin: 0, fontWeight: 500 }}>Scheduled Posts</h4>
           </div>
-          <div style={{ fontSize: '1.8rem', fontWeight: 600 }}>0</div>
+          <div style={{ fontSize: '1.8rem', fontWeight: 600 }}>{postsCount}</div>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '5px' }}>Awaiting generation</p>
         </div>
 

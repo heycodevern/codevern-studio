@@ -94,7 +94,11 @@ export default function ManagePlatformPage() {
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-        <div className="glass-panel" style={{ padding: '24px', cursor: 'pointer' }}>
+        <div 
+          className="glass-panel" 
+          style={{ padding: '24px', cursor: 'pointer', border: '1px solid var(--accent-primary)', background: 'rgba(99, 102, 241, 0.05)' }}
+          onClick={() => router.push(`/dashboard/social/${platform}/draft`)}
+        >
           <Edit3 size={24} style={{ color: 'var(--accent-primary)', marginBottom: '15px' }} />
           <h3 style={{ marginBottom: '5px' }}>Draft New Content</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Use AI to write posts automatically tailored for {platform}.</p>
