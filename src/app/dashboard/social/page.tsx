@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
 interface SocialAccount {
@@ -14,9 +15,14 @@ export default function SocialConnectionsPage() {
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const router = useRouter();
+
   const fetchAccounts = async () => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      router.push('/');
+      return;
+    }
     
     const { data, error } = await supabase.from('social_accounts').select('*').eq('user_id', user.id);
     if (!error && data) {

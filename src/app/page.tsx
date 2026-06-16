@@ -15,6 +15,13 @@ export default function Home() {
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
   });
 
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
   const [isDark, setIsDark] = useState(false);
 
   const toggleTheme = () => {
@@ -41,6 +48,7 @@ export default function Home() {
 
     if (authError) {
       setErrorMsg(authError.message);
+      showToast(authError.message, 'error');
       setIsLoading(false);
       return;
     }
@@ -55,10 +63,13 @@ export default function Home() {
 
       if (profileError) {
         setErrorMsg(profileError.message);
+        showToast(profileError.message, 'error');
         setIsLoading(false);
         return;
       }
     }
+
+    showToast('Engine built successfully! Welcome aboard.', 'success');
 
     // Simulate small delay for smooth animation
     setTimeout(() => {
@@ -130,19 +141,17 @@ export default function Home() {
             </p>
           </div>
 
-          {isLoading ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <div className="skeleton skeleton-text" style={{ width: '60%' }}></div>
-              <div className="skeleton skeleton-block"></div>
-              <div className="skeleton skeleton-text" style={{ width: '80%' }}></div>
-              <p style={{ textAlign: 'center', color: 'var(--accent-primary)', marginTop: '20px', fontWeight: 500, animation: 'pulse 2s infinite' }}>
-                Building your smart engine...
-              </p>
+          {toast && (
+            <div className="toast-container">
+              <div className={`toast toast-${toast.type}`}>
+                {toast.type === 'success' ? '✅' : '⚠️'} {toast.message}
+              </div>
             </div>
-          ) : (
-            <>
-              {/* Step 1 */}
-              {step === 1 && (
+          )}
+
+          <>
+            {/* Step 1 */}
+            {step === 1 && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div>
                     <label className="input-label">Project / Business Name</label>
@@ -199,10 +208,11 @@ export default function Home() {
                     </div>
                   )}
                   
-                  <button className="btn-primary" style={{ marginTop: '10px' }} onClick={completeSetup}>
-                    Complete Setup
+                  <button className="btn-primary" style={{ marginTop: '10px' }} onClick={completeSetup} disabled={isLoading}>
+                    {isLoading ? <span className="spinner"></span> : null}
+                    {isLoading ? 'Processing...' : 'Complete Setup'}
                   </button>
-                  <button style={{ color: 'var(--text-secondary)' }} onClick={handleBack}>← Back</button>
+                  <button style={{ color: 'var(--text-secondary)' }} onClick={handleBack} disabled={isLoading}>← Back</button>
                 </div>
               )}
 
@@ -221,7 +231,7 @@ export default function Home() {
                 </div>
               )}
             </>
-          )}
+          }
 
           {/* Progress Bar */}
           {step < 4 && !isLoading && (
