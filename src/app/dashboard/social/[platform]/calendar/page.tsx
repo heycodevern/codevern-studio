@@ -63,14 +63,32 @@ export default function ContentCalendarPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    const { error } = await supabase.from('posts').delete().eq('id', id);
-    if (!error) {
-      fetchPosts();
+  const handlePublishNow = async (post: any) => {
+    if (!confirm(`Are you sure you want to instantly publish "${post.title}" to ${platform}?`)) return;
+
+    // Show optimistic loading state (can use an alert or a toast, we'll use a simple alert for now)
+    alert("Publishing engine started... Check your notifications in a few seconds!");
+
+    try {
+      const res = await fetch(`/api/social/${platform}/publish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ postId: post.id })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to publish');
+      }
+
+      fetchPosts(); // Refresh to show it as published
+    } catch (error: any) {
+      alert("Instant Publish failed. The error has been logged to your Notifications.");
+      fetchPosts(); // Refresh to show it as failed
     }
   };
 
-  const filteredPosts = posts.filter(p => p.status === activeTab);
+  const filteredPosts = posts.filter(p => p.status === activeTab || (activeTab === 'draft' && p.status === 'failed')); // Show failed posts in drafts
 
   return (
     <div style={{ maxWidth: '1000px' }}>
@@ -97,7 +115,7 @@ export default function ContentCalendarPage() {
           onClick={() => setActiveTab('draft')}
           style={{ background: 'transparent', border: 'none', padding: '10px 0', color: activeTab === 'draft' ? 'var(--accent-primary)' : 'var(--text-secondary)', fontWeight: activeTab === 'draft' ? 600 : 400, borderBottom: activeTab === 'draft' ? '2px solid var(--accent-primary)' : '2px solid transparent', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
         >
-          <FileText size={16} /> Drafts
+          <FileText size={16} /> Drafts / Failed
         </button>
         <button 
           onClick={() => setActiveTab('scheduled')}
@@ -125,9 +143,12 @@ export default function ContentCalendarPage() {
             </div>
           ) : (
             filteredPosts.map(post => (
-              <div key={post.id} className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={post.id} className="glass-panel" style={{ padding: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', border: post.status === 'failed' ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid var(--border-color)' }}>
                 <div style={{ maxWidth: '600px' }}>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '5px' }}>{post.title}</h4>
+                  <h4 style={{ fontSize: '1.1rem', marginBottom: '5px' }}>
+                    {post.title}
+                    {post.status === 'failed' && <span style={{ marginLeft: '10px', fontSize: '0.75rem', background: '#ef4444', color: 'white', padding: '2px 6px', borderRadius: '4px' }}>Failed</span>}
+                  </h4>
                   <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{post.description}</p>
                   
                   {post.status === 'scheduled' && post.scheduled_for && (
@@ -141,17 +162,31 @@ export default function ContentCalendarPage() {
                       <a href={post.published_url} target="_blank" rel="noreferrer" style={{ color: 'var(--accent-primary)', fontSize: '0.85rem', fontWeight: 600 }}>View Live Post →</a>
                     </div>
                   )}
+                  
+                  {post.status === 'failed' && post.error_message && (
+                    <div style={{ marginTop: '10px', color: '#ef4444', fontSize: '0.85rem' }}>
+                      Error: {post.error_message}
+                    </div>
+                  )}
                 </div>
 
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  {(post.status === 'draft' || post.status === 'scheduled') && (
-                    <button 
-                      className="btn-primary" 
-                      style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', gap: '5px', alignItems: 'center' }}
-                      onClick={() => handleOpenSchedule(post)}
-                    >
-                      <CalendarIcon size={14} /> {post.status === 'scheduled' ? 'Reschedule' : 'Schedule'}
-                    </button>
+                  {(post.status === 'draft' || post.status === 'scheduled' || post.status === 'failed') && (
+                    <>
+                      <button 
+                        style={{ padding: '8px 16px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', color: '#10b981', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', display: 'flex', gap: '5px', alignItems: 'center', cursor: 'pointer', fontWeight: 600 }}
+                        onClick={() => handlePublishNow(post)}
+                      >
+                        <Send size={14} /> Publish Now
+                      </button>
+                      <button 
+                        className="btn-primary" 
+                        style={{ padding: '8px 16px', fontSize: '0.85rem', display: 'flex', gap: '5px', alignItems: 'center' }}
+                        onClick={() => handleOpenSchedule(post)}
+                      >
+                        <CalendarIcon size={14} /> {post.status === 'scheduled' ? 'Reschedule' : 'Schedule'}
+                      </button>
+                    </>
                   )}
                   <button 
                     style={{ padding: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', color: '#ef4444', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}

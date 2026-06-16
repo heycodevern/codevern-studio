@@ -93,6 +93,14 @@ export async function GET(req: Request) {
             published_url: `https://youtube.com/watch?v=${response.data.id}`
           }).eq('id', post.id);
 
+          // Success Notification
+          await supabaseAdmin.from('notifications').insert({
+            user_id: post.user_id,
+            title: 'Video Published!',
+            message: `Your video "${post.title}" has been successfully published to YouTube.`,
+            type: 'success'
+          });
+
           results.push({ id: post.id, status: 'success', videoId: response.data.id });
         }
         
@@ -104,6 +112,14 @@ export async function GET(req: Request) {
           error_message: postError.message
         }).eq('id', post.id);
         
+        // Error Notification
+        await supabaseAdmin.from('notifications').insert({
+          user_id: post.user_id,
+          title: 'Publishing Failed',
+          message: `Failed to publish "${post.title || 'Draft'}": ${postError.message}`,
+          type: 'error'
+        });
+
         results.push({ id: post.id, status: 'failed', error: postError.message });
       }
     }
