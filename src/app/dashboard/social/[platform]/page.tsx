@@ -103,7 +103,11 @@ export default function ManagePlatformPage() {
           <h3 style={{ marginBottom: '5px' }}>Draft New Content</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Use AI to write posts automatically tailored for {platform}.</p>
         </div>
-        <div className="glass-panel" style={{ padding: '24px', cursor: 'pointer' }}>
+        <div 
+          className="glass-panel" 
+          style={{ padding: '24px', cursor: 'pointer', border: '1px solid transparent', transition: 'all 0.2s' }}
+          onClick={() => router.push(`/dashboard/social/${platform}/media`)}
+        >
           <ImageIcon size={24} style={{ color: 'var(--accent-primary)', marginBottom: '15px' }} />
           <h3 style={{ marginBottom: '5px' }}>Media Library</h3>
           <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Upload or generate images and videos for your posts.</p>

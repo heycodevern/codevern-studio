@@ -63,6 +63,13 @@ export default function ContentCalendarPage() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from('posts').delete().eq('id', id);
+    if (!error) {
+      fetchPosts();
+    }
+  };
+
   const handlePublishNow = async (post: any) => {
     if (!confirm(`Are you sure you want to instantly publish "${post.title}" to ${platform}?`)) return;
 
