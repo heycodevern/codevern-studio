@@ -9,7 +9,7 @@ import { LayoutDashboard, Share2, KeyRound, Settings, LogOut, Sun, Moon, Search,
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [isDark, setIsDark] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<{ email: string, name: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<{ email: string, name: string, role: string } | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
@@ -26,10 +26,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (!user) {
         router.push('/');
       } else {
-        const { data: profile } = await supabase.from('profiles').select('business_name').eq('id', user.id).single();
+        const { data: profile } = await supabase.from('profiles').select('business_name, role').eq('id', user.id).single();
         setUserProfile({
           email: user.email || '',
-          name: profile?.business_name || 'Admin'
+          name: profile?.business_name || 'Admin',
+          role: profile?.role || 'OWNER'
         });
         setIsLoading(false);
       }
@@ -74,18 +75,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <LayoutDashboard size={18} />
             Overview
           </Link>
+          
           <Link href="/dashboard/social" className={`sidebar-link ${pathname === '/dashboard/social' ? 'active' : ''}`}>
             <Share2 size={18} />
             Social Accounts
           </Link>
-          <Link href="/dashboard/keys" className={`sidebar-link ${pathname === '/dashboard/keys' ? 'active' : ''}`}>
-            <KeyRound size={18} />
-            AI API Keys
-          </Link>
-          <Link href="/dashboard/settings" className={`sidebar-link ${pathname === '/dashboard/settings' ? 'active' : ''}`}>
-            <Settings size={18} />
-            Settings
-          </Link>
+
+          {(userProfile?.role === 'OWNER' || userProfile?.role === 'ADMIN') && (
+            <>
+              <Link href="/dashboard/keys" className={`sidebar-link ${pathname === '/dashboard/keys' ? 'active' : ''}`}>
+                <KeyRound size={18} />
+                AI API Keys
+              </Link>
+              <Link href="/dashboard/staff" className={`sidebar-link ${pathname === '/dashboard/staff' ? 'active' : ''}`}>
+                <User size={18} />
+                Manage Staff
+              </Link>
+              <Link href="/dashboard/settings" className={`sidebar-link ${pathname === '/dashboard/settings' ? 'active' : ''}`}>
+                <Settings size={18} />
+                Settings
+              </Link>
+            </>
+          )}
         </nav>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: 'auto', borderTop: '1px solid var(--border-color)', paddingTop: '20px' }}>

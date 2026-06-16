@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
 }
 
 model profiles {
@@ -11,6 +11,8 @@ model profiles {
   business_name String
   niche         String
   timezone      String
+  role          String   @default("OWNER")
+  owner_id      String?  @db.Uuid
   created_at    DateTime @default(now())
 }
 

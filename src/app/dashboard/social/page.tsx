@@ -70,7 +70,17 @@ export default function SocialConnectionsPage() {
               {connectedAccount && connectedAccount.is_connected ? (
                 <>
                   <p style={{ color: '#10b981', fontSize: '0.9rem', marginBottom: '15px' }}>● Connected as {connectedAccount.account_name}</p>
-                  <button style={{ color: '#ef4444', padding: '5px 10px', fontSize: '0.9rem', border: '1px solid #ef4444', borderRadius: 'var(--radius-sm)' }}>Disconnect</button>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                      className="btn-primary" 
+                      onClick={() => router.push(`/dashboard/social/${platform.id}`)}
+                    >
+                      Manage
+                    </button>
+                    <button style={{ color: '#ef4444', padding: '5px 10px', fontSize: '0.9rem', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-sm)', background: 'transparent' }}>
+                      Disconnect
+                    </button>
+                  </div>
                 </>
               ) : (
                 <>
