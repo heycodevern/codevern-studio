@@ -24,7 +24,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     const checkAuth = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        router.push('/');
+        router.push('/login');
       } else {
         const { data: profile } = await supabase.from('profiles').select('business_name, role').eq('id', user.id).single();
         setUserProfile({
@@ -51,7 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/');
+    router.push('/login');
   };
 
   if (isLoading) {
