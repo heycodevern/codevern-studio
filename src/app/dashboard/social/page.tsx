@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import { FaYoutube, FaFacebook, FaInstagram, FaLinkedin } from 'react-icons/fa';
+import { Loader2 } from 'lucide-react';
 
 interface SocialAccount {
   id: string;
@@ -15,6 +16,8 @@ interface SocialAccount {
 export default function SocialConnectionsPage() {
   const [accounts, setAccounts] = useState<SocialAccount[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [connectingPlatform, setConnectingPlatform] = useState<string | null>(null);
+  const [disconnectingPlatform, setDisconnectingPlatform] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -37,14 +40,22 @@ export default function SocialConnectionsPage() {
   }, []);
 
   const handleConnect = async (platform: string) => {
+    setConnectingPlatform(platform);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setConnectingPlatform(null);
+      return;
+    }
     window.location.href = `/api/social/connect?provider=${platform}&userId=${user.id}`;
   };
 
   const handleDisconnect = async (platform: string) => {
+    setDisconnectingPlatform(platform);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setDisconnectingPlatform(null);
+      return;
+    }
     
     const { error } = await supabase
       .from('social_accounts')
@@ -52,8 +63,9 @@ export default function SocialConnectionsPage() {
       .match({ user_id: user.id, platform });
       
     if (!error) {
-      fetchAccounts();
+      await fetchAccounts();
     }
+    setDisconnectingPlatform(null);
   };
 
   const platforms = [
@@ -92,10 +104,12 @@ export default function SocialConnectionsPage() {
                       Manage
                     </button>
                     <button 
-                      style={{ color: '#ef4444', padding: '5px 10px', fontSize: '0.9rem', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-sm)', background: 'transparent' }}
+                      style={{ color: '#ef4444', padding: '5px 10px', fontSize: '0.9rem', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-sm)', background: 'transparent', display: 'flex', alignItems: 'center', gap: '5px', opacity: disconnectingPlatform === platform.id ? 0.5 : 1, cursor: disconnectingPlatform === platform.id ? 'not-allowed' : 'pointer' }}
                       onClick={() => handleDisconnect(platform.id)}
+                      disabled={disconnectingPlatform === platform.id}
                     >
-                      Disconnect
+                      {disconnectingPlatform === platform.id ? <Loader2 size={14} className="animate-spin" /> : null}
+                      {disconnectingPlatform === platform.id ? 'Disconnecting...' : 'Disconnect'}
                     </button>
                   </div>
                 </>
@@ -104,10 +118,12 @@ export default function SocialConnectionsPage() {
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '15px' }}>Not Connected</p>
                   <button 
                     className="btn-primary" 
-                    style={{ background: platform.color, boxShadow: `0 4px 15px ${platform.color}40` }}
+                    style={{ background: platform.color, boxShadow: `0 4px 15px ${platform.color}40`, display: 'flex', alignItems: 'center', gap: '8px', opacity: connectingPlatform === platform.id ? 0.7 : 1, cursor: connectingPlatform === platform.id ? 'not-allowed' : 'pointer' }}
                     onClick={() => handleConnect(platform.id)}
+                    disabled={connectingPlatform === platform.id}
                   >
-                    Connect {platform.name}
+                    {connectingPlatform === platform.id ? <Loader2 size={18} className="animate-spin" /> : null}
+                    {connectingPlatform === platform.id ? 'Connecting...' : `Connect ${platform.name}`}
                   </button>
                 </>
               )}
