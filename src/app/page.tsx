@@ -231,8 +231,6 @@ export default function Home() {
                 </div>
               )}
             </>
-          }
-
           {/* Progress Bar */}
           {step < 4 && !isLoading && (
             <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '40px' }}>
