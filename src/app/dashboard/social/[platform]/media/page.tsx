@@ -14,6 +14,7 @@ export default function MediaLibraryPage() {
   const [drafts, setDrafts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   const [attachModalOpen, setAttachModalOpen] = useState(false);
   const [selectedFileUrl, setSelectedFileUrl] = useState('');
@@ -48,13 +49,35 @@ export default function MediaLibraryPage() {
     fetchData();
   }, [platform]);
 
+  // Simulate smooth upload progress
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isUploading) {
+      setUploadProgress(0);
+      interval = setInterval(() => {
+        setUploadProgress(prev => {
+          const increment = Math.random() * 15;
+          const next = prev + increment;
+          return next >= 90 ? 90 : next; // Hold at 90% until fully resolved
+        });
+      }, 500);
+    } else if (uploadProgress > 0) {
+      setUploadProgress(100);
+      setTimeout(() => setUploadProgress(0), 1000); // Clear after 1 second
+    }
+    return () => clearInterval(interval);
+  }, [isUploading]);
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setIsUploading(true);
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    if (!user) {
+      setIsUploading(false);
+      return;
+    }
 
     // Generate safe filename
     const fileExt = file.name.split('.').pop();
@@ -68,7 +91,19 @@ export default function MediaLibraryPage() {
 
     if (error) {
       alert("Upload failed: " + error.message);
+      await supabase.from('notifications').insert({
+        user_id: user.id,
+        title: 'Upload Failed',
+        message: `Could not upload ${file.name}: ${error.message}`,
+        type: 'error'
+      });
     } else {
+      await supabase.from('notifications').insert({
+        user_id: user.id,
+        title: 'Media Uploaded',
+        message: `${file.name} has been added to your library securely!`,
+        type: 'success'
+      });
       fetchData(); // Refresh file list
     }
     
@@ -124,7 +159,7 @@ export default function MediaLibraryPage() {
         </div>
         
         {/* Upload Button */}
-        <div>
+        <div style={{ position: 'relative' }}>
           <input 
             type="file" 
             id="media-upload" 
@@ -136,11 +171,23 @@ export default function MediaLibraryPage() {
             className="btn-primary" 
             onClick={() => document.getElementById('media-upload')?.click()}
             disabled={isUploading}
-            style={{ display: 'flex', gap: '8px', alignItems: 'center' }}
+            style={{ display: 'flex', gap: '8px', alignItems: 'center', width: '200px', justifyContent: 'center' }}
           >
             {isUploading ? <Loader2 size={16} className="spin" /> : <UploadCloud size={16} />}
             {isUploading ? 'Uploading...' : 'Upload Media'}
           </button>
+          
+          {/* Progress Bar */}
+          {(isUploading || uploadProgress > 0) && (
+            <div style={{ position: 'absolute', top: '110%', left: 0, width: '100%', background: 'rgba(255,255,255,0.1)', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
+              <div style={{ 
+                height: '100%', 
+                background: uploadProgress === 100 ? '#10b981' : 'var(--accent-primary)', 
+                width: `${uploadProgress}%`,
+                transition: 'width 0.5s ease-out, background 0.3s'
+              }} />
+            </div>
+          )}
         </div>
       </div>
 
