@@ -2,9 +2,9 @@ import { NextResponse } from 'next/server';
 import { getGoogleOAuthClient } from '../../connect/route';
 import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
-
 export async function GET(req: Request) {
+  const prisma = new PrismaClient();
+
   const { searchParams } = new URL(req.url);
   const code = searchParams.get('code');
   const userId = searchParams.get('state'); // The userId we passed
