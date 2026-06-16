@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import { Sun, Moon, CheckCircle2, AlertCircle, Rocket, Zap, Bot, ArrowRight, ArrowLeft } from 'lucide-react';
 
 export default function Home() {
   const [step, setStep] = useState(1);
@@ -131,14 +132,14 @@ export default function Home() {
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-glass)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}>⚡</div>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-glass)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}><Zap size={20} color="var(--accent-primary)" /></div>
               <div>
                 <h4 style={{ color: 'var(--text-primary)' }}>100% Automated</h4>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Set it and forget it scheduling.</p>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-glass)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}>🤖</div>
+              <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--bg-glass)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--border-color)' }}><Bot size={20} color="var(--accent-primary)" /></div>
               <div>
                 <h4 style={{ color: 'var(--text-primary)' }}>Multi-AI Fallback</h4>
                 <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>OpenAI, Gemini, DeepSeek & more.</p>
@@ -157,7 +158,7 @@ export default function Home() {
           style={{ position: 'absolute', top: '20px', right: '40px', fontSize: '1.5rem', background: 'var(--bg-glass)', border: '1px solid var(--border-color)', borderRadius: '50%', width: '45px', height: '45px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 10 }}
           title="Toggle Dark/Light Mode"
         >
-          {isDark ? '☀️' : '🌙'}
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
         </button>
 
         <div style={{ width: '100%', maxWidth: '500px', padding: '40px', position: 'relative' }}>
@@ -190,7 +191,7 @@ export default function Home() {
           {toast && (
             <div className="toast-container">
               <div className={`toast toast-${toast.type}`}>
-                {toast.type === 'success' ? '✅' : '⚠️'} {toast.message}
+                {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />} {toast.message}
               </div>
             </div>
           )}
@@ -235,8 +236,8 @@ export default function Home() {
                       {isLoading ? 'Signing In...' : 'Sign In to Dashboard'}
                     </button>
                   ) : (
-                    <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleNext}>
-                      Next Step →
+                    <button className="btn-primary" style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={handleNext}>
+                      Next Step <ArrowRight size={16} />
                     </button>
                   )}
 
@@ -262,10 +263,10 @@ export default function Home() {
                       We will automatically inject trending hashtags, SEO keywords, and optimal formatting for {formData.niche || "your niche"} directly into the AI prompts.
                     </p>
                   </div>
-                  <button className="btn-primary" style={{ marginTop: '10px' }} onClick={handleNext}>
-                    Continue →
+                  <button className="btn-primary" style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={handleNext}>
+                    Continue <ArrowRight size={16} />
                   </button>
-                  <button style={{ color: 'var(--text-secondary)' }} onClick={handleBack}>← Back</button>
+                  <button style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px' }} onClick={handleBack}><ArrowLeft size={16} /> Back</button>
                 </div>
               )}
 
@@ -277,8 +278,8 @@ export default function Home() {
                   </p>
                   
                   {errorMsg && (
-                    <div className="alert alert-error">
-                      ⚠️ {errorMsg}
+                    <div className="alert alert-error" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <AlertCircle size={18} /> {errorMsg}
                     </div>
                   )}
                   
@@ -286,21 +287,21 @@ export default function Home() {
                     {isLoading ? <span className="spinner"></span> : null}
                     {isLoading ? 'Processing...' : 'Complete Setup'}
                   </button>
-                  <button style={{ color: 'var(--text-secondary)' }} onClick={handleBack} disabled={isLoading}>← Back</button>
+                  <button style={{ color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px' }} onClick={handleBack} disabled={isLoading}><ArrowLeft size={16} /> Back</button>
                 </div>
               )}
 
               {/* Step 4: Dashboard Preview */}
               {step === 4 && !isLoginMode && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🚀</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', textAlign: 'center', alignItems: 'center' }}>
+                  <div style={{ marginBottom: '10px', color: 'var(--accent-primary)' }}><Rocket size={48} /></div>
                   <h3 className="text-gradient">Engine is Online</h3>
                   <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '20px' }}>
                     Welcome to your automated dashboard.
                   </p>
                   
-                  <button className="btn-primary" onClick={() => window.location.href = '/dashboard/keys'}>
-                    Configure AI API Keys →
+                  <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} onClick={() => window.location.href = '/dashboard/keys'}>
+                    Configure AI API Keys <ArrowRight size={16} />
                   </button>
                 </div>
               )}
